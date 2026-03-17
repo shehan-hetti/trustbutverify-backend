@@ -147,6 +147,26 @@ class TestNudgeEventPayload:
         )
         assert n.response == 8
 
+    def test_question_tags_defaults_and_accepts_multiple_values(self):
+        base = NudgeEventPayload(
+            id="ne-3",
+            timestamp=100,
+            triggerType="copy",
+            nudgeQuestionId="q3",
+            nudgeQuestionText="Check this?",
+        )
+        assert base.questionTags is None
+
+        with_tags = NudgeEventPayload(
+            id="ne-4",
+            timestamp=100,
+            triggerType="copy",
+            nudgeQuestionId="q4",
+            nudgeQuestionText="Check this too?",
+            questionTags=["accountability", "self-reflection"],
+        )
+        assert with_tags.questionTags == ["accountability", "self-reflection"]
+
 
 class TestSyncRequest:
     def test_empty(self):

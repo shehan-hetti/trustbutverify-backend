@@ -69,7 +69,7 @@ async def debug_data(
 
     nudges = (await db.execute(text(
         f"SELECT id, participant_id, event_id, occurred_at, domain, thread_id, turn_id, "
-        f"copy_activity_id, trigger_type, question_id, question_text, response, "
+        f"copy_activity_id, trigger_type, question_id, question_text, question_tags, response, "
         f"response_time_ms, dismissed_by "
         f"FROM nudge_events {p_filter}"
     ))).mappings().all()

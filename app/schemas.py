@@ -89,6 +89,7 @@ class NudgeEventPayload(BaseModel):
     triggerType: str                            # 'copy' or 'response'
     nudgeQuestionId: str
     nudgeQuestionText: str
+    questionTags: list[str] | None = None
     response: str | int | None = None           # yes/no/partly/skip or 1-10
     responseTimeMs: int | None = None
     dismissedBy: str | None = None              # answer/skip/close/timeout/replaced

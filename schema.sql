@@ -169,6 +169,7 @@ CREATE TABLE nudge_events (
   trigger_type       VARCHAR(20)  NOT NULL,         -- 'copy' or 'response'
   question_id        VARCHAR(100) NOT NULL,         -- e.g. "response-clarity-1"
   question_text      TEXT         NOT NULL,
+  question_tags      JSON         NOT NULL,             -- multi-value tag list from question bank
 
   response           VARCHAR(50)  NULL,             -- 'yes'/'no'/'partly'/'skip' or '1'-'10'
   response_time_ms   INT UNSIGNED NULL,

@@ -247,6 +247,7 @@ async def upsert_nudge_events(
             trigger_type=payload.triggerType,
             question_id=payload.nudgeQuestionId,
             question_text=payload.nudgeQuestionText,
+            question_tags=list(dict.fromkeys(payload.questionTags)) if payload.questionTags else None,
             response=str(payload.response) if payload.response is not None else None,
             response_time_ms=payload.responseTimeMs,
             dismissed_by=payload.dismissedBy,

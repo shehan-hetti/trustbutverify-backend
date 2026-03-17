@@ -8,6 +8,7 @@ from sqlalchemy import (
     BigInteger,
     ForeignKey,
     Integer,
+    JSON,
     Numeric,
     SmallInteger,
     String,
@@ -195,6 +196,7 @@ class NudgeEvent(Base):
     trigger_type: Mapped[str] = mapped_column(String(20), nullable=False)
     question_id: Mapped[str] = mapped_column(String(100), nullable=False)
     question_text: Mapped[str] = mapped_column(Text, nullable=False)
+    question_tags: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
 
     response: Mapped[str | None] = mapped_column(String(50), nullable=True)
     response_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)

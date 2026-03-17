@@ -3,6 +3,8 @@
 Uses an in-memory SQLite database (see conftest.py) so Docker is not required.
 """
 
+import json
+
 import pytest
 from httpx import AsyncClient
 
@@ -159,6 +161,7 @@ async def test_sync_conversation_with_turns(client: AsyncClient):
                 "triggerType": "copy",
                 "nudgeQuestionId": "copy-confidence-1",
                 "nudgeQuestionText": "Did you copy this because you trust this response?",
+                "questionTags": ["accountability", "self-reflection"],
                 "response": "yes",
                 "responseTimeMs": 1500,
                 "dismissedBy": "answer",
@@ -178,6 +181,15 @@ async def test_sync_conversation_with_turns(client: AsyncClient):
     assert data["counts"]["turns"] == 1
     assert data["counts"]["copyActivities"] == 1
     assert data["counts"]["nudgeEvents"] == 1
+
+    debug = await client.get(f"/api/debug/data?participant_uuid={uuid}")
+    assert debug.status_code == 200
+    nudge_events = debug.json()["nudge_events"]
+    assert len(nudge_events) == 1
+    tags = nudge_events[0]["question_tags"]
+    if isinstance(tags, str):
+        tags = json.loads(tags)
+    assert tags == ["accountability", "self-reflection"]
 
 
 @pytest.mark.asyncio
