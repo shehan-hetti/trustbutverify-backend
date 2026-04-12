@@ -7,13 +7,13 @@ responses from the extension and persists them in a MySQL database for analysis.
 ## Architecture
 
 ```
-Browser Extension  ──HTTP──▶  nginx (reverse proxy, port 80)
-                                 │
-                                 ▼
-                              FastAPI (uvicorn, port 8000)
-                                 │
-                                 ▼
-                              MySQL 8.4 (InnoDB, utf8mb4)
+Browser Extension  ──HTTPS──▶  nginx (reverse proxy, port 443)
+                                   │  (HTTP :80 → 301 redirect)
+                                   ▼
+                                FastAPI (uvicorn, port 8000)
+                                   │
+                                   ▼
+                                MySQL 8.4 (InnoDB, utf8mb4)
 ```
 
 All three services run as Docker containers managed by Docker Compose.
@@ -27,7 +27,8 @@ All three services run as Docker containers managed by Docker Compose.
 | ORM         | SQLAlchemy 2.0 (async, aiomysql driver) |
 | Validation  | Pydantic v2                             |
 | Database    | MySQL 8.4                               |
-| Proxy       | nginx (Alpine)                          |
+| Proxy       | nginx (Alpine) + TLS                    |
+| TLS         | Let's Encrypt (Certbot)                 |
 | Container   | Docker + Docker Compose                 |
 
 ## API Endpoints
@@ -48,10 +49,32 @@ Five tables: `participants`, `conversations`, `conversation_turns`,
 `copy_activities`, and `nudge_events`. See `schema.sql` for the full
 DDL including indexes and foreign key constraints.
 
+## SSL / TLS
+
+The nginx reverse proxy terminates TLS using Let's Encrypt certificates
+managed by Certbot. Certificates are stored on the host at
+`/etc/letsencrypt/` and mounted read-only into the nginx container.
+
+### Setup
+
+```bash
+# Install Certbot
+sudo apt install -y certbot
+
+# Obtain certificate (stop Docker first to free port 80)
+docker compose down
+sudo certbot certonly --standalone -d api.trustbutverify.dev
+docker compose up -d
+```
+
+Certbot automatically sets up a scheduled task for renewal.
+Certificates are valid for 90 days and auto-renew.
+
 ## Prerequisites
 
 - Docker Engine 24+
 - Docker Compose v2
+- Certbot (for SSL certificate management)
 
 ## Quick Start
 
@@ -69,16 +92,22 @@ DDL including indexes and foreign key constraints.
    # Edit .env with your own passwords
    ```
 
-3. **Start the stack**
+3. **Set up SSL certificate**
+
+   ```bash
+   sudo certbot certonly --standalone -d api.trustbutverify.dev
+   ```
+
+4. **Start the stack**
 
    ```bash
    docker compose up -d
    ```
 
-4. **Verify**
+5. **Verify**
 
    ```bash
-   curl http://localhost/api/health
+   curl https://api.trustbutverify.dev/api/health
    # {"status":"ok","database":"connected"}
    ```
 
@@ -125,9 +154,10 @@ trustbutverify-backend/
 │   ├── test_api.py         # Integration tests (full HTTP)
 │   ├── test_helpers.py     # Unit tests for sync_service helpers
 │   └── test_schemas.py     # Pydantic schema validation tests
+├── certbot-webroot/        # ACME challenge webroot (for cert renewal)
 ├── docker-compose.yml      # Three-service stack definition
 ├── Dockerfile              # FastAPI container image
-├── nginx.conf              # Reverse proxy configuration
+├── nginx.conf              # Reverse proxy + TLS configuration
 ├── schema.sql              # MySQL DDL
 ├── requirements.txt        # Python dependencies
 ├── pyproject.toml          # Pytest configuration

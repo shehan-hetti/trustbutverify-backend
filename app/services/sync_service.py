@@ -124,11 +124,6 @@ async def upsert_conversations(
             await db.flush()  # get conversation.id
             conv_count += 1
 
-        if not existing:
-            conv_count = conv_count  # already counted above
-        else:
-            conv_count += 1
-
         # Upsert turns
         for turn_payload in conv_payload.turns:
             turn_result = await db.execute(
