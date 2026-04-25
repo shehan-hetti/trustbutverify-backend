@@ -84,7 +84,7 @@ class ConversationTurn(Base):
     response_text_len: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     category: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_inferred: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, default=0)
 
     # Readability metrics
     resp_readability_version: Mapped[int | None] = mapped_column(TINYINT(unsigned=True), nullable=True, default=1)
@@ -141,6 +141,7 @@ class CopyActivity(Base):
     selection_len: Mapped[int | None] = mapped_column(Integer, nullable=True)
     container_text_len: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_full_text: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, default=0)
+    copy_method: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     copy_category: Mapped[str | None] = mapped_column(String(512), nullable=True)
     copy_category_source: Mapped[str | None] = mapped_column(String(20), nullable=True)

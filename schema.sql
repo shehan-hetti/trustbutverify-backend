@@ -56,7 +56,7 @@ CREATE TABLE conversation_turns (
   response_text_len  INT UNSIGNED NULL,
 
   category           VARCHAR(512) NULL,            -- pipe-separated labels or "pending"
-  summary            TEXT         NULL,
+  is_inferred        TINYINT(1)   NULL DEFAULT 0,   -- 1 = backfilled from copy, 0 = real detector capture
 
   -- Readability metrics (individual columns)
   resp_readability_version     TINYINT UNSIGNED NULL DEFAULT 1,
@@ -112,6 +112,7 @@ CREATE TABLE copy_activities (
   selection_len      INT UNSIGNED NULL,             -- length of copied text
   container_text_len INT UNSIGNED NULL,             -- length of full container text
   is_full_text       TINYINT(1)   NULL DEFAULT 0,   -- 1 = copied entire text, 0 = partial
+  copy_method        VARCHAR(20)  NULL,             -- 'keyboard' or 'button'
 
   copy_category        VARCHAR(512) NULL,           -- e.g. "Language Translation|Education"
   copy_category_source VARCHAR(20)  NULL,           -- 'llm' or 'turn'

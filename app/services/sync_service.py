@@ -134,11 +134,9 @@ async def upsert_conversations(
             existing_turn = turn_result.scalar_one_or_none()
 
             if existing_turn:
-                # Update fields that may change (category/summary can go from "pending" to real)
+                # Update fields that may change (category can go from "pending" to real)
                 if turn_payload.category:
                     existing_turn.category = turn_payload.category
-                if turn_payload.summary:
-                    existing_turn.summary = turn_payload.summary
                 if turn_payload.response.readability:
                     for k, v in _flatten_readability(turn_payload.response.readability, "resp_").items():
                         setattr(existing_turn, k, v)
@@ -156,7 +154,7 @@ async def upsert_conversations(
                     prompt_text_len=turn_payload.prompt.textLength,
                     response_text_len=turn_payload.response.textLength,
                     category=turn_payload.category,
-                    summary=turn_payload.summary,
+                    is_inferred=1 if turn_payload.isInferred else 0,
                     **_flatten_readability(turn_payload.response.readability, "resp_"),
                     **_flatten_complexity(turn_payload.response.complexity, "resp_"),
                 )
@@ -201,6 +199,7 @@ async def _upsert_copy_activity(
         selection_len=payload.textLength,
         container_text_len=payload.containerTextLength,
         is_full_text=1 if payload.isFullText else 0,
+        copy_method=payload.copyMethod,
         copy_category=payload.copyCategory,
         copy_category_source=payload.copyCategorySource,
         **_flatten_readability(payload.readability),

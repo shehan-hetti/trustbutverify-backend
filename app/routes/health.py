@@ -47,7 +47,7 @@ async def debug_data(
     ))).mappings().all()
 
     turns = (await db.execute(text(
-        f"SELECT ct.id, ct.conversation_id, ct.turn_id, ct.category, ct.summary, "
+        f"SELECT ct.id, ct.conversation_id, ct.turn_id, ct.previous_turn_id, ct.category, ct.is_inferred, "
         f"ct.prompt_text_len, ct.response_text_len, ct.response_time_ms, "
         f"ct.resp_flesch_reading_ease, ct.resp_flesch_kincaid_grade, ct.resp_smog_index, "
         f"ct.resp_gunning_fog, ct.resp_word_count, ct.resp_sentence_count, "
@@ -60,7 +60,7 @@ async def debug_data(
 
     copies = (await db.execute(text(
         f"SELECT id, participant_id, activity_id, occurred_at, domain, thread_id, turn_id, "
-        f"turn_side, selection_len, container_text_len, is_full_text, copy_category, "
+        f"turn_side, selection_len, container_text_len, is_full_text, copy_method, copy_category, "
         f"copy_category_source, flesch_reading_ease, flesch_kincaid_grade, smog_index, "
         f"gunning_fog, word_count, sentence_count, "
         f"grade_consensus, complexity_band, reason_codes "

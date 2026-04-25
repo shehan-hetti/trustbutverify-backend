@@ -43,7 +43,7 @@ class TurnPayload(BaseModel):
     response: ResponseData
     responseTimeMs: int | None = None
     category: str | None = None
-    summary: str | None = None
+    isInferred: bool | None = None
     ts: int  # epoch ms
 
 
@@ -59,6 +59,7 @@ class CopyActivityPayload(BaseModel):
     textLength: int | None = None               # selection length
     containerTextLength: int | None = None
     isFullText: bool | None = None              # future: full vs partial copy
+    copyMethod: str | None = None               # 'keyboard' or 'button'
     copyCategory: str | None = None
     copyCategorySource: str | None = None       # 'llm' or 'turn'
     readability: dict[str, Any] | None = None
