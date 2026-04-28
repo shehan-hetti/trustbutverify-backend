@@ -271,8 +271,8 @@ async def process_sync(
     nudge_count = await upsert_nudge_events(db, participant_id, nudge_events)
 
     logger.info(
-        "Sync complete: conversations=%d turns=%d copies=%d nudges=%d",
-        conv_count, turn_count, copy_count, nudge_count,
+        "Sync complete (participant_id=%d): conversations=%d turns=%d copies=%d nudges=%d",
+        participant_id, conv_count, turn_count, copy_count, nudge_count,
     )
 
     return SyncCounts(

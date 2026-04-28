@@ -1,4 +1,5 @@
 import logging
+import time
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy import select
@@ -47,11 +48,13 @@ async def sync_data(
 
     Copy activities are embedded inside each conversation's copyActivities array.
     """
+    start = time.time()
     participant_id = await _resolve_participant(db, x_participant_uuid)
 
     logger.info(
-        "Sync request from participant %s: %d conversations, %d nudge events",
-        x_participant_uuid,
+        "Sync request from participant %s (id=%d): %d conversations, %d nudge events",
+        x_participant_uuid[:8] + "…",
+        participant_id,
         len(payload.conversations),
         len(payload.nudgeEvents),
     )
@@ -63,6 +66,9 @@ async def sync_data(
         nudge_events=payload.nudgeEvents,
     )
 
+    elapsed = round(time.time() - start, 3)
+    logger.info("Sync completed in %.3fs", elapsed)
+
     return SyncResponse(
         success=True,
         counts=counts,
@@ -70,3 +76,4 @@ async def sync_data(
                 f"{counts.turns} turns, {counts.copyActivities} copies, "
                 f"{counts.nudgeEvents} nudge events",
     )
+

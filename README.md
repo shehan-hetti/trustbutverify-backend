@@ -39,7 +39,7 @@ All three services run as Docker containers managed by Docker Compose.
 | POST   | `/api/participants/register`      | Register a new participant (UUID)    |
 | GET    | `/api/participants/verify/:uuid`  | Verify a participant UUID            |
 | POST   | `/api/sync`                       | Sync extension data to the database  |
-| GET    | `/api/debug/data/:uuid`           | Retrieve all data for a participant  |
+| GET    | `/api/debug/data`               | Debug data view (requires `X-Debug-Key`)  |
 
 Interactive docs available at `/api/docs` (Swagger UI) and `/api/redoc`.
 
@@ -122,6 +122,95 @@ Certificates are valid for 90 days and auto-renew.
 | `DATABASE_URL`        | SQLAlchemy async connection string   | *(required)*           |
 | `API_HOST`            | Uvicorn bind address                 | `0.0.0.0`             |
 | `API_PORT`            | Uvicorn port                         | `8000`                 |
+| `DEBUG_API_KEY`       | API key for `/api/debug/data` endpoint | `""` (disabled)      |
+
+## Debug Data Endpoint
+
+The `/api/debug/data` endpoint returns all stored data for inspection.
+It requires the `X-Debug-Key` header matching the `DEBUG_API_KEY` env var.
+
+```bash
+# Query all data
+curl -s https://api.trustbutverify.dev/api/debug/data \
+  -H "X-Debug-Key: YOUR_DEBUG_KEY" | python3 -m json.tool
+
+# Filter by participant
+curl -s "https://api.trustbutverify.dev/api/debug/data?participant_uuid=UUID" \
+  -H "X-Debug-Key: YOUR_DEBUG_KEY" | python3 -m json.tool
+
+# Without the key → 403 Forbidden
+curl -s https://api.trustbutverify.dev/api/debug/data
+# → {"detail": "Forbidden"}
+```
+
+## Deploying Updates to CSC
+
+The backend runs on a CSC cPouta VM as Docker containers.
+
+### SSH into the VM
+
+```bash
+ssh -i <key-file>.pem ubuntu@<BACKEND_VM_IP>
+```
+
+### Pull latest code and redeploy
+
+```bash
+cd ~/trustbutverify-backend
+
+# Pull latest changes
+git pull origin main
+
+# Rebuild and restart (preserves database volume)
+docker compose build api
+docker compose up -d api
+
+# Verify
+curl -s https://api.trustbutverify.dev/api/health
+# → {"status":"ok","database":"connected"}
+```
+
+### If `.env` changed
+
+```bash
+# Edit .env on the VM with new values
+nano .env
+
+# Restart the API container to pick up changes
+docker compose up -d api
+```
+
+### If `schema.sql` changed (new columns/tables)
+
+```bash
+# Connect to MySQL to run migrations manually
+docker compose exec db mysql -u root -p trustbutverify
+
+# Or apply the full schema (WARNING: only for fresh databases)
+# docker compose exec -T db mysql -u root -p trustbutverify < schema.sql
+```
+
+### View logs
+
+```bash
+# API logs
+docker compose logs -f api
+
+# Nginx logs
+docker compose logs -f nginx
+
+# All services
+docker compose logs -f
+```
+
+### Full rebuild (nuclear option)
+
+```bash
+# Stop everything, rebuild from scratch (keeps database)
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+```
 
 ## Running Tests
 
